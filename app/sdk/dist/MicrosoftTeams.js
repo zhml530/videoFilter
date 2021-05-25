@@ -3456,15 +3456,28 @@ var videoApp;
             var _this = this;
             internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel, constants_1.FrameContexts.meetingStage);
             this.videoFrameCallback = frameCallback;
-            handlers_1.registerHandler('videoApp.newVideoFrame', function (message) {
-                if (_this.videoFrameCallback != null) {
-                    var videoFrame = message.data.videoFrame;
+            handlers_1.registerHandler('videoApp.newVideoFrame', function () {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                if (_this.videoFrameCallback !== null && args !== undefined) {
+                    var videoFrame = args[0];
                     _this.videoFrameCallback(videoFrame, _this.notifyVideoFrameProcessed.bind(_this), _this.notifyError.bind(_this));
                 }
             });
-            handlers_1.registerHandler('videoApp.effectParameterChange', function (message) {
-                if (_this.videoEffectCallback != null) {
-                    _this.videoEffectCallback(message.data.effectId);
+            handlers_1.registerHandler('videoApp.effectParameterChange', function () {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                if (_this.videoEffectCallback !== undefined) {
+                    if (args !== undefined) {
+                        _this.videoEffectCallback(args[0]);
+                    }
+                    else {
+                        _this.videoEffectCallback(undefined);
+                    }
                 }
             });
             communication_1.sendMessageToParent('videoApp.sendMessagePortToMainWindow', [config]);
