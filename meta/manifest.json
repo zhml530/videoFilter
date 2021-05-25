@@ -1,0 +1,49 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.9/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.9",
+  "version": "1.0.0",
+  "showLoadingIndicator": true,
+  "id": "acad9308-491f-4239-a898-4601279c37b3",
+  "packageName": "com.microsoft.teams.videofilter",
+  "developer": {
+    "name": "Bo Lu",
+    "websiteUrl": "https://github.com/lubobill1990/Teams-VideoApp-example",
+    "privacyUrl": "https://github.com/lubobill1990/Teams-VideoApp-example",
+    "termsOfUseUrl": "https://github.com/lubobill1990/Teams-VideoApp-example"
+  },
+  "icons": {
+    "color": "icon-color.png",
+    "outline": "icon-outline.png"
+  },
+  "name": {
+    "short": "Teams VideoFilter example",
+    "full": "Teams VideoFilter example"
+  },
+  "description": {
+    "short": "This repo demonstrate a minimal Teams video filter.",
+    "full": "Clone this repo and change the video frame processing function"
+  },
+  "accentColor": "#FFFFFF",
+  "configurableTabs": [
+    {
+      "configurationUrl": "https://lubobill1990.github.io/Teams-VideoApp-example/app/configure.html",
+      "canUpdateConfiguration": true,
+      "scopes": [
+        "groupchat"
+      ],
+      "context": [
+        "privateChatTab",
+        "meetingSidePanel",
+        "meetingDetailsTab",
+        "meetingChatTab"
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "lubobill1990.github.io"
+  ]
+}
