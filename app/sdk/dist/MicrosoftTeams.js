@@ -3414,7 +3414,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var communication_1 = __webpack_require__(0);
 var internalAPIs_1 = __webpack_require__(1);
 var constants_1 = __webpack_require__(2);
-var handlers_1 = __webpack_require__(3);
 /**
  * Namespace to video extensibility of the SDK.
  *
@@ -3453,20 +3452,9 @@ var videoApp;
          * register to read the video frames in Permissions section.
          */
         VideoApp.prototype.registerForVideoFrame = function (frameCallback, config) {
-            var _this = this;
             internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel, constants_1.FrameContexts.meetingStage);
             this.videoFrameCallback = frameCallback;
-            handlers_1.registerHandler('videoApp.newVideoFrame', function (message) {
-                if (_this.videoFrameCallback != null) {
-                    var videoFrame = message.data.videoFrame;
-                    _this.videoFrameCallback(videoFrame, _this.notifyVideoFrameProcessed.bind(_this), _this.notifyError.bind(_this));
-                }
-            });
-            handlers_1.registerHandler('videoApp.effectParameterChange', function (message) {
-                if (_this.videoEffectCallback != null) {
-                    _this.videoEffectCallback(message.data.effectId);
-                }
-            });
+            this.setupConnection();
             communication_1.sendMessageToParent('videoApp.sendMessagePortToMainWindow', [config]);
         };
         /**
@@ -3485,6 +3473,28 @@ var videoApp;
             internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel, constants_1.FrameContexts.meetingStage);
             this.videoEffectCallback = callback;
             communication_1.sendMessageToParent('videoApp.registerForVideoEffect');
+        };
+        /**
+         * Message handler
+         */
+        VideoApp.prototype.receiveMessage = function (event) {
+            var type = event.data.type;
+            if (type === 'videoApp.newVideoFrame' && this.videoFrameCallback != null) {
+                var videoFrame = event.data.videoFrame;
+                this.videoFrameCallback(videoFrame, this.notifyVideoFrameProcessed.bind(this), this.notifyError.bind(this));
+            }
+            else if (type === 'videoApp.effectParameterChange' && this.videoEffectCallback != null) {
+                this.videoEffectCallback(event.data.effectId);
+            }
+            else {
+                console.log('Unsupported message type' + type);
+            }
+        };
+        /**
+         * Setup the connection between videoApp and Teams, they use postMessage function to communicate
+         */
+        VideoApp.prototype.setupConnection = function () {
+            window.addEventListener('message', this.receiveMessage.bind(this), false);
         };
         /**
          * sending notification to Teams client finished the video frame processing, now Teams client can render this video frame
