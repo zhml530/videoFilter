@@ -3461,7 +3461,7 @@ var videoApp;
                 for (var _i = 0; _i < arguments.length; _i++) {
                     args[_i] = arguments[_i];
                 }
-                if (_this.videoFrameCallback !== null && args !== undefined) {
+                if (_this.videoFrameCallback !== null && args !== undefined && args.length !== 0) {
                     var videoFrame = args[0];
                     _this.videoFrameCallback(videoFrame, _this.notifyVideoFrameProcessed.bind(_this), _this.notifyError.bind(_this));
                 }
@@ -3472,7 +3472,7 @@ var videoApp;
                     args[_i] = arguments[_i];
                 }
                 if (_this.videoEffectCallback !== undefined) {
-                    if (args !== undefined) {
+                    if (args !== undefined && args.length !== 0) {
                         _this.videoEffectCallback(args[0]);
                     }
                     else {
@@ -3480,7 +3480,7 @@ var videoApp;
                     }
                 }
             });
-            communication_1.sendMessageToParent('videoApp.sendMessagePortToMainWindow', [config]);
+            communication_1.sendMessageToParent('videoApp.registerForVideoFrame', [config]);
         };
         /**
          * VideoApp extension should call this to notify Teams Client current selected effect parameter changed.
@@ -3495,9 +3495,7 @@ var videoApp;
          * Register the video effect callback, Teams client uses this to notify the videoApp extension the new video effect will by applied.
          */
         VideoApp.prototype.registerForVideoEffect = function (callback) {
-            internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel, constants_1.FrameContexts.meetingStage);
             this.videoEffectCallback = callback;
-            communication_1.sendMessageToParent('videoApp.registerForVideoEffect');
         };
         /**
          * sending notification to Teams client finished the video frame processing, now Teams client can render this video frame
