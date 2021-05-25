@@ -3456,28 +3456,14 @@ var videoApp;
             var _this = this;
             internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel, constants_1.FrameContexts.meetingStage);
             this.videoFrameCallback = frameCallback;
-            handlers_1.registerHandler('videoApp.newVideoFrame', function () {
-                var args = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                    args[_i] = arguments[_i];
-                }
-                if (_this.videoFrameCallback !== null && args !== undefined && args.length !== 0) {
-                    var videoFrame = args[0];
+            handlers_1.registerHandler('videoApp.newVideoFrame', function (videoFrame) {
+                if (_this.videoFrameCallback !== null && videoFrame !== undefined) {
                     _this.videoFrameCallback(videoFrame, _this.notifyVideoFrameProcessed.bind(_this), _this.notifyError.bind(_this));
                 }
             });
-            handlers_1.registerHandler('videoApp.effectParameterChange', function () {
-                var args = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                    args[_i] = arguments[_i];
-                }
+            handlers_1.registerHandler('videoApp.effectParameterChange', function (effectId) {
                 if (_this.videoEffectCallback !== undefined) {
-                    if (args !== undefined && args.length !== 0) {
-                        _this.videoEffectCallback(args[0]);
-                    }
-                    else {
-                        _this.videoEffectCallback(undefined);
-                    }
+                    _this.videoEffectCallback(effectId);
                 }
             });
             communication_1.sendMessageToParent('videoApp.registerForVideoFrame', [config]);
