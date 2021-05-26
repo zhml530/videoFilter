@@ -655,7 +655,7 @@ function handleBeforeUnload() {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = __webpack_require__(5);
-exports.version = '1.9.0';
+exports.version = '1.10.0';
 /**
  * This is the SDK version when all SDK APIs started to check platform compatibility for the APIs.
  */
@@ -717,7 +717,6 @@ exports.validOrigins = [
     'https://powerpoint.office.com',
     'https://www.officeppe.com',
     'https://*.www.office.com',
-    'http://127.0.0.1:5000',
 ];
 exports.validOriginRegExp = utils_1.generateRegExpFromUrls(exports.validOrigins);
 /**
@@ -1389,7 +1388,7 @@ var settings;
      * @param callback The callback to invoke when the {@link Settings} object is retrieved.
      */
     function getSettings(callback) {
-        internalAPIs_1.ensureInitialized(constants_1.FrameContexts.content, constants_1.FrameContexts.settings, constants_1.FrameContexts.remove);
+        internalAPIs_1.ensureInitialized(constants_1.FrameContexts.content, constants_1.FrameContexts.settings, constants_1.FrameContexts.remove, constants_1.FrameContexts.sidePanel);
         communication_1.sendMessageToParent('settings.getSettings', callback);
     }
     settings.getSettings = getSettings;
@@ -1399,7 +1398,7 @@ var settings;
      * @param settings The desired settings for this instance.
      */
     function setSettings(instanceSettings, onComplete) {
-        internalAPIs_1.ensureInitialized(constants_1.FrameContexts.content, constants_1.FrameContexts.settings);
+        internalAPIs_1.ensureInitialized(constants_1.FrameContexts.content, constants_1.FrameContexts.settings, constants_1.FrameContexts.sidePanel);
         communication_1.sendMessageToParent('settings.setSettings', [instanceSettings], onComplete ? onComplete : utils_1.getGenericOnCompleteHandler());
     }
     settings.setSettings = setSettings;
@@ -3320,9 +3319,8 @@ var meeting;
      * Allows an app to request the live streaming be started at the given streaming url
      * @param streamUrl the url to the stream resource
      * @param streamKey the key to the stream resource
-     * @param callback Callback contains 2 parameters: error and liveStreamState.
-     * error can either contain an error of type SdkError, in case of an error, or null when operation is successful
-     * liveStreamState can either contain a LiveStreamState value, or null when operation fails
+     * @param callback Callback contains error parameter which can be of type SdkError in case of an error, or null when operation is successful
+     * Use getLiveStreamState or registerLiveStreamChangedHandler to get updates on the live stream state
      */
     function requestStartLiveStreaming(callback, streamUrl, streamKey) {
         if (!callback) {
@@ -3334,9 +3332,8 @@ var meeting;
     meeting.requestStartLiveStreaming = requestStartLiveStreaming;
     /**
      * Allows an app to request the live streaming be stopped at the given streaming url
-     * @param callback Callback contains 2 parameters: error and liveStreamState.
-     * error can either contain an error of type SdkError, in case of an error, or null when operation is successful
-     * liveStreamState can either contain a LiveStreamState value, or null when operation fails
+     * @param callback Callback contains error parameter which can be of type SdkError in case of an error, or null when operation is successful
+     * Use getLiveStreamState or registerLiveStreamChangedHandler to get updates on the live stream state
      */
     function requestStopLiveStreaming(callback) {
         if (!callback) {
@@ -3454,7 +3451,7 @@ var videoApp;
          */
         VideoApp.prototype.registerForVideoFrame = function (frameCallback, config) {
             var _this = this;
-            internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel, constants_1.FrameContexts.meetingStage);
+            internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel);
             this.videoFrameCallback = frameCallback;
             handlers_1.registerHandler('videoApp.newVideoFrame', function (videoFrame) {
                 if (_this.videoFrameCallback !== null && videoFrame !== undefined) {
@@ -3474,7 +3471,7 @@ var videoApp;
          * in-meeting scenario, we will call videoEffectCallback when apply button clicked.
          */
         VideoApp.prototype.notifySelectedVideoEffectChanged = function (effectChangeType) {
-            internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel, constants_1.FrameContexts.meetingStage);
+            internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel);
             communication_1.sendMessageToParent('videoApp.videoEffectChanged', [effectChangeType]);
         };
         /**
@@ -3829,6 +3826,7 @@ var remoteCamera;
         SessionTerminatedReason[SessionTerminatedReason["DataChannelError"] = 7] = "DataChannelError";
         SessionTerminatedReason[SessionTerminatedReason["ControllerCancelled"] = 8] = "ControllerCancelled";
         SessionTerminatedReason[SessionTerminatedReason["ControlDisabled"] = 9] = "ControlDisabled";
+        SessionTerminatedReason[SessionTerminatedReason["ControlTerminatedToAllowOtherController"] = 10] = "ControlTerminatedToAllowOtherController";
     })(SessionTerminatedReason = remoteCamera.SessionTerminatedReason || (remoteCamera.SessionTerminatedReason = {}));
     /**
      * @private
