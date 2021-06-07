@@ -3,7 +3,7 @@ microsoftTeams.initialize(() => {}, ["https://localhost:9000", "https://zhml530.
 // This is the effect for processing
 let appliedEffect = {
   pixelValue: 100,
-  proportion: 1,
+  proportion: 2,
 };
 
 // This is the effect linked with UI
