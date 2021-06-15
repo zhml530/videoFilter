@@ -566,6 +566,7 @@ function initializeHandlers() {
     HandlersPrivate.handlers['backButtonPress'] = handleBackButtonPress;
     HandlersPrivate.handlers['load'] = handleLoad;
     HandlersPrivate.handlers['beforeUnload'] = handleBeforeUnload;
+    HandlersPrivate.handlers['focusEnter'] = handleFocusEnter;
 }
 exports.initializeHandlers = initializeHandlers;
 function callHandler(name, args) {
@@ -617,6 +618,16 @@ exports.registerBackButtonHandler = registerBackButtonHandler;
 function handleBackButtonPress() {
     if (!HandlersPrivate.backButtonPressHandler || !HandlersPrivate.backButtonPressHandler()) {
         public_1.navigateBack();
+    }
+}
+function registerFocusEnterHandler(handler) {
+    HandlersPrivate.focusEnterHandler = handler;
+    handler && communication_1.sendMessageToParent('registerHandler', ['focusEnter']);
+}
+exports.registerFocusEnterHandler = registerFocusEnterHandler;
+function handleFocusEnter(navigateForward) {
+    if (HandlersPrivate.focusEnterHandler) {
+        HandlersPrivate.focusEnterHandler(navigateForward);
     }
 }
 function registerOnLoadHandler(handler) {
@@ -954,7 +965,8 @@ exports.initializeWithFrameContext = publicAPIs_1.initializeWithFrameContext;
 exports.print = publicAPIs_1.print;
 exports.registerBackButtonHandler = publicAPIs_1.registerBackButtonHandler;
 exports.registerBeforeUnloadHandler = publicAPIs_1.registerBeforeUnloadHandler;
-exports.registerChangeSettingsHandler = publicAPIs_1.registerChangeSettingsHandler;
+exports.registerFocusEnterHandler = publicAPIs_1.registerFocusEnterHandler;
+exports.registerEnterSettingsHandler = publicAPIs_1.registerEnterSettingsHandler;
 exports.registerFullScreenHandler = publicAPIs_1.registerFullScreenHandler;
 exports.registerOnLoadHandler = publicAPIs_1.registerOnLoadHandler;
 exports.registerOnThemeChangeHandler = publicAPIs_1.registerOnThemeChangeHandler;
@@ -2793,6 +2805,7 @@ function initialize(callback, validMessageOrigins) {
                 registerFullScreenHandler(null);
                 registerBackButtonHandler(null);
                 registerBeforeUnloadHandler(null);
+                registerFocusEnterHandler(null);
                 registerOnLoadHandler(null);
                 logs_1.logs.registerGetLogHandler(null);
             }
@@ -2968,14 +2981,24 @@ function registerBeforeUnloadHandler(handler) {
 }
 exports.registerBeforeUnloadHandler = registerBeforeUnloadHandler;
 /**
+ * @private
+ * Registers a handler when focus needs to be passed from teams to the place of choice on app.
+ * @param handler The handler to invoked by the app when they want the focus to be in the place of their choice.
+ */
+function registerFocusEnterHandler(handler) {
+    internalAPIs_1.ensureInitialized();
+    Handlers.registerFocusEnterHandler(handler);
+}
+exports.registerFocusEnterHandler = registerFocusEnterHandler;
+/**
  * Registers a handler for when the user reconfigurated tab
  * @param handler The handler to invoke when the user click on Settings.
  */
-function registerChangeSettingsHandler(handler) {
+function registerEnterSettingsHandler(handler) {
     internalAPIs_1.ensureInitialized(constants_2.FrameContexts.content);
     Handlers.registerHandler('changeSettings', handler);
 }
-exports.registerChangeSettingsHandler = registerChangeSettingsHandler;
+exports.registerEnterSettingsHandler = registerEnterSettingsHandler;
 /**
  * Allows an app to retrieve for this user tabs that are owned by this app.
  * If no TabInstanceParameters are passed, the app defaults to favorite teams and favorite channels.
@@ -3417,15 +3440,14 @@ var handlers_1 = __webpack_require__(3);
  *
  */
 var videoApp;
-(function (videoApp_1) {
+(function (videoApp) {
     /**
-     * Video frame format enum
+     * Video frame format enum, currentlyl only support NV12
      */
     var VideoFrameFormat;
     (function (VideoFrameFormat) {
-        VideoFrameFormat[VideoFrameFormat["RGB"] = 0] = "RGB";
-        VideoFrameFormat[VideoFrameFormat["NV12"] = 1] = "NV12";
-    })(VideoFrameFormat = videoApp_1.VideoFrameFormat || (videoApp_1.VideoFrameFormat = {}));
+        VideoFrameFormat[VideoFrameFormat["NV12"] = 0] = "NV12";
+    })(VideoFrameFormat = videoApp.VideoFrameFormat || (videoApp.VideoFrameFormat = {}));
     /**
      *  Video effect change type enum
      */
@@ -3439,76 +3461,67 @@ var videoApp;
          * disable the video effect
          */
         EffectChangeType[EffectChangeType["EffectDisabled"] = 1] = "EffectDisabled";
-    })(EffectChangeType = videoApp_1.EffectChangeType || (videoApp_1.EffectChangeType = {}));
+    })(EffectChangeType = videoApp.EffectChangeType || (videoApp.EffectChangeType = {}));
     /**
-     * VideoApp
+     * VideoApp private members
      */
-    var VideoApp = /** @class */ (function () {
-        function VideoApp() {
+    var VideoAppPrivate = /** @class */ (function () {
+        function VideoAppPrivate() {
         }
-        /**
-         * register to read the video frames in Permissions section.
-         */
-        VideoApp.prototype.registerForVideoFrame = function (frameCallback, config) {
-            var _this = this;
-            internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel);
-            this.videoFrameCallback = frameCallback;
-            handlers_1.registerHandler('videoApp.newVideoFrame', function (videoFrame) {
-                if (_this.videoFrameCallback !== null && videoFrame !== undefined) {
-                    _this.videoFrameCallback(videoFrame, _this.notifyVideoFrameProcessed.bind(_this), _this.notifyError.bind(_this));
-                }
-            });
-            handlers_1.registerHandler('videoApp.effectParameterChange', function (effectId) {
-                if (_this.videoEffectCallback !== undefined) {
-                    _this.videoEffectCallback(effectId);
-                }
-            });
-            communication_1.sendMessageToParent('videoApp.registerForVideoFrame', [config]);
-        };
-        /**
-         * VideoApp extension should call this to notify Teams Client current selected effect parameter changed.
-         * If it's pre-meeting, Teams client will call videoEffectCallback immediately then use the videoEffect.
-         * in-meeting scenario, we will call videoEffectCallback when apply button clicked.
-         */
-        VideoApp.prototype.notifySelectedVideoEffectChanged = function (effectChangeType) {
-            internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel);
-            communication_1.sendMessageToParent('videoApp.videoEffectChanged', [effectChangeType]);
-        };
-        /**
-         * Register the video effect callback, Teams client uses this to notify the videoApp extension the new video effect will by applied.
-         */
-        VideoApp.prototype.registerForVideoEffect = function (callback) {
-            this.videoEffectCallback = callback;
-        };
-        /**
-         * sending notification to Teams client finished the video frame processing, now Teams client can render this video frame
-         * or pass the video frame to next one in video pipeline.
-         */
-        VideoApp.prototype.notifyVideoFrameProcessed = function () {
-            communication_1.sendMessageToParent('videoApp.videoFrameProcessed');
-        };
-        /**
-         * sending error notification to Teams client.
-         */
-        VideoApp.prototype.notifyError = function (errorMessage) {
-            communication_1.sendMessageToParent('videoApp.notifyError', [errorMessage]);
-        };
-        return VideoApp;
-    }()); // end of VideoApp
-    var videoApp = new VideoApp();
+        return VideoAppPrivate;
+    }());
+    /**
+     * register to read the video frames in Permissions section.
+     */
     function registerForVideoFrame(frameCallback, config) {
-        videoApp.registerForVideoFrame(frameCallback, config);
+        internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel);
+        VideoAppPrivate.videoFrameCallback = frameCallback;
+        handlers_1.registerHandler('videoApp.newVideoFrame', function (videoFrame) {
+            if (VideoAppPrivate.videoFrameCallback !== null && videoFrame !== undefined) {
+                VideoAppPrivate.videoFrameCallback(videoFrame, notifyVideoFrameProcessed, notifyError);
+            }
+        });
+        handlers_1.registerHandler('videoApp.effectParameterChange', function (effectId) {
+            if (VideoAppPrivate.videoEffectCallback !== undefined) {
+                VideoAppPrivate.videoEffectCallback(effectId);
+            }
+        });
+        communication_1.sendMessageToParent('videoApp.registerForVideoFrame', [config]);
     }
-    videoApp_1.registerForVideoFrame = registerForVideoFrame;
-    function notifySelectedVideoEffectChanged(effectChangeType) {
-        videoApp.notifySelectedVideoEffectChanged(effectChangeType);
+    videoApp.registerForVideoFrame = registerForVideoFrame;
+    /**
+     * VideoApp extension should call this to notify Teams Client current selected effect parameter changed.
+     * If it's pre-meeting, Teams client will call videoEffectCallback immediately then use the videoEffect.
+     * in-meeting scenario, we will call videoEffectCallback when apply button clicked.
+     * @param effectChangeType the effect change type.
+     * @param effectId Newly selected effect id.
+     */
+    function notifySelectedVideoEffectChanged(effectChangeType, effectId) {
+        internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel);
+        communication_1.sendMessageToParent('videoApp.videoEffectChanged', [effectChangeType, effectId]);
     }
-    videoApp_1.notifySelectedVideoEffectChanged = notifySelectedVideoEffectChanged;
+    videoApp.notifySelectedVideoEffectChanged = notifySelectedVideoEffectChanged;
+    /**
+     * Register the video effect callback, Teams client uses this to notify the videoApp extension the new video effect will by applied.
+     */
     function registerForVideoEffect(callback) {
-        videoApp.registerForVideoEffect(callback);
+        VideoAppPrivate.videoEffectCallback = callback;
     }
-    videoApp_1.registerForVideoEffect = registerForVideoEffect;
-})(videoApp = exports.videoApp || (exports.videoApp = {})); //end of video namespace
+    videoApp.registerForVideoEffect = registerForVideoEffect;
+    /**
+     * sending notification to Teams client finished the video frame processing, now Teams client can render this video frame
+     * or pass the video frame to next one in video pipeline.
+     */
+    function notifyVideoFrameProcessed() {
+        communication_1.sendMessageToParent('videoApp.videoFrameProcessed');
+    }
+    /**
+     * sending error notification to Teams client.
+     */
+    function notifyError(errorMessage) {
+        communication_1.sendMessageToParent('videoApp.notifyError', [errorMessage]);
+    }
+})(videoApp = exports.videoApp || (exports.videoApp = {})); //end of videoApp namespace
 
 
 /***/ }),
