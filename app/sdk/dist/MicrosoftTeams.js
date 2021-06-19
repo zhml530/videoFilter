@@ -3463,27 +3463,13 @@ var videoApp;
         EffectChangeType[EffectChangeType["EffectDisabled"] = 1] = "EffectDisabled";
     })(EffectChangeType = videoApp.EffectChangeType || (videoApp.EffectChangeType = {}));
     /**
-     * VideoApp private members
-     */
-    var VideoAppPrivate = /** @class */ (function () {
-        function VideoAppPrivate() {
-        }
-        return VideoAppPrivate;
-    }());
-    /**
      * register to read the video frames in Permissions section.
      */
     function registerForVideoFrame(frameCallback, config) {
         internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel);
-        VideoAppPrivate.videoFrameCallback = frameCallback;
         handlers_1.registerHandler('videoApp.newVideoFrame', function (videoFrame) {
-            if (VideoAppPrivate.videoFrameCallback !== null && videoFrame !== undefined) {
-                VideoAppPrivate.videoFrameCallback(videoFrame, notifyVideoFrameProcessed, notifyError);
-            }
-        });
-        handlers_1.registerHandler('videoApp.effectParameterChange', function (effectId) {
-            if (VideoAppPrivate.videoEffectCallback !== undefined) {
-                VideoAppPrivate.videoEffectCallback(effectId);
+            if (videoFrame !== undefined) {
+                frameCallback(videoFrame, notifyVideoFrameProcessed, notifyError);
             }
         });
         communication_1.sendMessageToParent('videoApp.registerForVideoFrame', [config]);
@@ -3505,7 +3491,8 @@ var videoApp;
      * Register the video effect callback, Teams client uses this to notify the videoApp extension the new video effect will by applied.
      */
     function registerForVideoEffect(callback) {
-        VideoAppPrivate.videoEffectCallback = callback;
+        internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel);
+        handlers_1.registerHandler('videoApp.effectParameterChange', callback);
     }
     videoApp.registerForVideoEffect = registerForVideoEffect;
     /**
