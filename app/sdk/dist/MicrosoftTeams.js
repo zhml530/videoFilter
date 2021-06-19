@@ -995,8 +995,8 @@ var meeting_1 = __webpack_require__(30);
 exports.meeting = meeting_1.meeting;
 var people_1 = __webpack_require__(31);
 exports.people = people_1.people;
-var videoApp_1 = __webpack_require__(32);
-exports.videoApp = videoApp_1.videoApp;
+var video_1 = __webpack_require__(32);
+exports.video = video_1.video;
 
 
 /***/ }),
@@ -3439,15 +3439,15 @@ var handlers_1 = __webpack_require__(3);
  * Namespace to video extensibility of the SDK.
  *
  */
-var videoApp;
-(function (videoApp) {
+var video;
+(function (video) {
     /**
      * Video frame format enum, currentlyl only support NV12
      */
     var VideoFrameFormat;
     (function (VideoFrameFormat) {
         VideoFrameFormat[VideoFrameFormat["NV12"] = 0] = "NV12";
-    })(VideoFrameFormat = videoApp.VideoFrameFormat || (videoApp.VideoFrameFormat = {}));
+    })(VideoFrameFormat = video.VideoFrameFormat || (video.VideoFrameFormat = {}));
     /**
      *  Video effect change type enum
      */
@@ -3461,7 +3461,7 @@ var videoApp;
          * disable the video effect
          */
         EffectChangeType[EffectChangeType["EffectDisabled"] = 1] = "EffectDisabled";
-    })(EffectChangeType = videoApp.EffectChangeType || (videoApp.EffectChangeType = {}));
+    })(EffectChangeType = video.EffectChangeType || (video.EffectChangeType = {}));
     /**
      * register to read the video frames in Permissions section.
      */
@@ -3474,7 +3474,7 @@ var videoApp;
         });
         communication_1.sendMessageToParent('videoApp.registerForVideoFrame', [config]);
     }
-    videoApp.registerForVideoFrame = registerForVideoFrame;
+    video.registerForVideoFrame = registerForVideoFrame;
     /**
      * VideoApp extension should call this to notify Teams Client current selected effect parameter changed.
      * If it's pre-meeting, Teams client will call videoEffectCallback immediately then use the videoEffect.
@@ -3486,7 +3486,7 @@ var videoApp;
         internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel);
         communication_1.sendMessageToParent('videoApp.videoEffectChanged', [effectChangeType, effectId]);
     }
-    videoApp.notifySelectedVideoEffectChanged = notifySelectedVideoEffectChanged;
+    video.notifySelectedVideoEffectChanged = notifySelectedVideoEffectChanged;
     /**
      * Register the video effect callback, Teams client uses this to notify the videoApp extension the new video effect will by applied.
      */
@@ -3494,7 +3494,7 @@ var videoApp;
         internalAPIs_1.ensureInitialized(constants_1.FrameContexts.sidePanel);
         handlers_1.registerHandler('videoApp.effectParameterChange', callback);
     }
-    videoApp.registerForVideoEffect = registerForVideoEffect;
+    video.registerForVideoEffect = registerForVideoEffect;
     /**
      * sending notification to Teams client finished the video frame processing, now Teams client can render this video frame
      * or pass the video frame to next one in video pipeline.
@@ -3508,7 +3508,7 @@ var videoApp;
     function notifyError(errorMessage) {
         communication_1.sendMessageToParent('videoApp.notifyError', [errorMessage]);
     }
-})(videoApp = exports.videoApp || (exports.videoApp = {})); //end of videoApp namespace
+})(video = exports.video || (exports.video = {})); //end of videoApp namespace
 
 
 /***/ }),
