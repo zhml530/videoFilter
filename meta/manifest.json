@@ -2,7 +2,6 @@
   "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.9/MicrosoftTeams.schema.json",
   "manifestVersion": "1.9",
   "version": "1.0.0",
-  "showLoadingIndicator": true,
   "id": "acad9308-491f-4239-a898-4601279c37b3",
   "packageName": "com.microsoft.teams.videofilter",
   "developer": {

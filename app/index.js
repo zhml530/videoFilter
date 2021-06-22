@@ -70,4 +70,3 @@ document.getElementById("pixel_value").addEventListener("change", function () {
   uiSelectedEffect.pixelValue = this.value;
   microsoftTeams.video.notifySelectedVideoEffectChanged("EffectChanged");
 });
-microsoftTeams.appInitialization.notifySuccess();
